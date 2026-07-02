@@ -13,310 +13,361 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
-        body {
-            background-color: #020617;
-            color: #e2e8f0;
-            font-family: 'Outfit', sans-serif;
-            overflow: hidden;
-        }
+:root {
+    /* Colores principales */
+    --primary-teal: #14b8a6;
+    --primary-teal-glow: rgba(20, 184, 166, 0.4);
+    --secondary-blue: #3b82f6;
+    --secondary-blue-glow: rgba(59, 130, 246, 0.4);
+    --accent-purple: #8b5cf6;
+    --accent-purple-glow: rgba(139, 92, 246, 0.4);
+    
+    /* Estados */
+    --success-emerald: #10b981;
+    --warning-amber: #f59e0b;
+    --danger-red: #ef4444;
+    --danger-red-glow: rgba(239, 68, 68, 0.5);
+    
+    /* Fondos */
+    --bg-deep: #0f172a;
+    --bg-surface: rgba(30, 41, 59, 0.7);
+    --bg-surface-light: rgba(51, 65, 85, 0.5);
+}
 
-        .hud-font {
-            font-family: 'JetBrains Mono', monospace;
-        }
+body {
+    background-color: var(--bg-deep);
+    color: #f1f5f9;
+    font-family: 'Outfit', sans-serif;
+    overflow: hidden;
+}
 
-        /* --- CORE UTILITIES --- */
-        .glass {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
+.hud-font {
+    font-family: 'JetBrains Mono', monospace;
+}
 
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
+/* --- CORE UTILITIES --- */
+.glass {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
 
-        /* --- ANIMATIONS --- */
-        @keyframes slideInRight {
-            from {
-                transform: translateX(50px);
-                opacity: 0;
-            }
+.glass-panel {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
 
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
+/* --- ANIMATIONS --- */
+@keyframes slideInRight {
+    from {
+        transform: translateX(60px) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
 
-        .patient-enter {
-            animation: slideInRight 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
+.patient-enter {
+    animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-        @keyframes heartbeat {
-            0% {
-                transform: scale(1);
-                filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
-            }
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+    }
+    15% {
+        transform: scale(1.08);
+        filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.6));
+    }
+    30% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+    }
+    45% {
+        transform: scale(1.08);
+        filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.6));
+    }
+    60% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+    }
+}
 
-            15% {
-                transform: scale(1.05);
-                filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
-            }
+.critical-pulse {
+    animation: heartbeat 1.8s ease-in-out infinite;
+    color: var(--danger-red);
+}
 
-            30% {
-                transform: scale(1);
-                filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
-            }
+@keyframes popIn {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
 
-            45% {
-                transform: scale(1.05);
-                filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
-            }
+.pop-in {
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
 
-            60% {
-                transform: scale(1);
-                filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
-            }
-        }
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0) rotate(0deg);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-6px) rotate(-2deg);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(6px) rotate(2deg);
+    }
+}
 
-        .critical-pulse {
-            animation: heartbeat 2s infinite;
-            color: #ef4444;
-        }
+.animate-shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
 
-        @keyframes popIn {
-            0% {
-                transform: scale(0.95);
-                opacity: 0;
-            }
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-6px) rotate(1deg);
+    }
+    75% {
+        transform: translateY(-6px) rotate(-1deg);
+    }
+}
 
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
 
-        .pop-in {
-            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px var(--primary-teal-glow),
+            0 0 40px var(--primary-teal-glow),
+            inset 0 0 20px rgba(20, 184, 166, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 0 30px var(--primary-teal-glow),
+            0 0 60px var(--primary-teal-glow),
+            inset 0 0 30px rgba(20, 184, 166, 0.2);
+    }
+}
 
-        @keyframes shake {
+.animate-glow {
+    animation: glow 3s ease-in-out infinite;
+}
 
-            0%,
-            100% {
-                transform: translateX(0);
-            }
+@keyframes pulse-gentle {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
 
-            10%,
-            30%,
-            50%,
-            70%,
-            90% {
-                transform: translateX(-4px);
-            }
+.animate-pulse-gentle {
+    animation: pulse-gentle 2s ease-in-out infinite;
+}
 
-            111%,
-            20%,
-            40%,
-            60%,
-            80% {
-                transform: translateX(4px);
-            }
-        }
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
 
-        .animate-shake {
-            animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
-        }
+.shimmer {
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 3s infinite linear;
+}
 
-        @keyframes float {
+/* --- BACKGROUND --- */
+.game-background {
+    background:
+        radial-gradient(circle at 50% 0%, rgba(20, 184, 166, 0.15), transparent 50%),
+        radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.12), transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.1), transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.5), transparent 70%),
+        var(--bg-deep);
+}
 
-            0%,
-            100% {
-                transform: translateY(0);
-            }
+/* Grid overlay */
+.game-background::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+}
 
-            50% {
-                transform: translateY(-5px);
-            }
-        }
+/* Vignette */
+.game-background::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(15, 23, 42, 0.9) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
 
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
-        }
+.game-background > * {
+    position: relative;
+    z-index: 1;
+}
 
-        /* --- BACKGROUND --- */
-        .game-background {
-            background:
-                radial-gradient(circle at 50% 0%, rgba(45, 212, 191, 0.1), transparent 40%),
-                radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.1), transparent 40%),
-                radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.05), transparent 40%),
-                #020617;
-            /* Slate 950 */
-        }
+/* --- SCROLLBAR --- */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
 
-        /* Grid overlay */
-        .game-background::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 32px 32px;
-            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
-            pointer-events: none;
-            z-index: 0;
-        }
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 3px;
+}
 
-        /* Vignette */
-        .game-background::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, transparent 0%, rgba(2, 6, 23, 0.8) 100%);
-            pointer-events: none;
-            z-index: 0;
-        }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--primary-teal), var(--secondary-blue));
+    border-radius: 3px;
+    transition: all 0.3s;
+}
 
-        .game-background>* {
-            position: relative;
-            z-index: 1;
-        }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--secondary-blue), var(--accent-purple));
+    box-shadow: 0 0 10px var(--primary-teal-glow);
+}
 
-        /* --- SCROLLBAR --- */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
+/* --- COMPONENT SPECIFIC --- */
+.btn-premium {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%), var(--btn-bg);
+    border: 1px solid var(--btn-border);
+    box-shadow: 
+        0 4px 0 var(--btn-shadow),
+        0 8px 16px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
 
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
+.btn-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
 
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.2);
-            border-radius: 99px;
-        }
+.btn-premium:hover::before {
+    left: 100%;
+}
 
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(148, 163, 184, 0.4);
-        }
+.btn-premium:active {
+    transform: translateY(4px);
+    box-shadow: 
+        0 0 0 var(--btn-shadow),
+        0 4px 8px rgba(0, 0, 0, 0.3);
+}
 
-        /* --- COMPONENT SPECIFIC --- */
-        .btn-premium {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%), var(--btn-bg);
-            border: 1px solid var(--btn-border);
-            box-shadow: 0 4px 0 var(--btn-shadow), 0 2px 4px rgba(0, 0, 0, 0.3);
-            transition: all 0.1s;
-        }
+.btn-premium:disabled {
+    opacity: 0.5;
+    filter: grayscale(0.8);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
 
-        .btn-premium:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 var(--btn-shadow);
-        }
+/* Hover effects for interactive elements */
+.hover-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-        .btn-premium:disabled {
-            opacity: 0.5;
-            filter: grayscale(0.8);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Gradient text effect */
+.gradient-text {
+    background: linear-gradient(135deg, var(--primary-teal), var(--secondary-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Card shine effect */
+.card-shine {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-shine::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.05) 50%,
+        transparent 70%
+    );
+    transform: rotate(45deg);
+    transition: all 0.6s;
+    opacity: 0;
+}
+
+.card-shine:hover::after {
+    opacity: 1;
+    transform: rotate(45deg) translate(20%, 20%);
+}
     </style>
-</head>
-
-<body>
-    <div id="root"></div>
-    <script>
-        // --- BASE DE DATOS DE PACIENTES (EXPANDIDA) ---
-        const PATIENT_POOL = [
-            {
-                id: 1,
-                name: "Sofía",
-                age: 28,
-                complaint: "Grita que es dueña del hospital. Agitada.",
-                vitals: "FC 115 lpm | Verborrea | Inquietud motora severa | Sin necesidad de sueño.",
-                diagnosis: "Manía Aguda",
-                triaje: "UCE",
-                sprite: "👑"
-            },
-            {
-                id: 2,
-                name: "Jorge",
-                age: 22,
-                complaint: "Pánico intenso, cree que va a morir.",
-                vitals: "FC 110 lpm | PA 135/85 mmHg | Hiperventilación | EKG: Ritmo sinusal normal.",
-                diagnosis: "Crisis de Pánico",
-                triaje: "OBS",
-                sprite: "😰"
-            },
-            {
-                id: 3,
-                name: "Carlos",
-                age: 45,
-                complaint: "Tristeza crónica, sin riesgo suicida. Solicita medicación.",
-                vitals: "FC 72 lpm | PA 120/80 mmHg | Facies triste | Bradipsiquia leve.",
-                diagnosis: "Depresión Moderada",
-                triaje: "ALTA",
-                sprite: "🌧️"
-            },
-            {
-                id: 4,
-                name: "Ana",
-                age: 19,
-                complaint: "Intento suicida con 20 pastillas desconocidas.",
-                vitals: "Glasgow 12/15 (Somnolienta) | FC 60 lpm | Pupilas isocóricas | PA 100/60 mmHg.",
-                diagnosis: "Intento Suicida / Intoxicación",
-                triaje: "UCE",
-                sprite: "💊"
-            },
-            {
-                id: 5,
-                name: "Luis",
-                age: 55,
-                complaint: "Temblores severos, ve insectos en la pared.",
-                vitals: "FC 125 lpm | PA 160/95 mmHg | Diaforesis profusa | Temp 37.8°C.",
-                diagnosis: "Delirium Tremens",
-                triaje: "UCE",
-                sprite: "🐜"
-            },
-            {
-                id: 6,
-                name: "Elena",
-                age: 30,
-                complaint: "Ansiedad por examen mañana. Tiembla un poco.",
-                vitals: "FC 90 lpm | PA 125/80 mmHg | Leve temblor distal manos.",
-                diagnosis: "Ansiedad Situacional",
-                triaje: "ALTA",
-                sprite: "📚"
-            },
-            {
-                id: 7,
-                name: "Pedro",
-                age: 25,
-                complaint: "Dice que el FBI lo persigue. Agresivo.",
-                vitals: "Mirada fija y amenazante | FC 105 lpm | Tensión muscular generalizada.",
-                diagnosis: "Psicosis Aguda",
-                triaje: "UCE",
-                sprite: "🕵️"
-            },
-            {
-                id: 8,
-                name: "Marta",
-                age: 60,
-                complaint: "No duerme bien hace 3 días. Irritable.",
-                vitals: "Signos vitales normales | Ojeras marcadas | Fatiga visible.",
-                diagnosis: "Insomnio",
-                triaje: "ALTA",
-                sprite: "🌙"
             },
             {
                 id: 9,
@@ -907,6 +958,7 @@
             return "Alta con plan de seguridad, educación y seguimiento ambulatorio.";
         };
     </script>
+        const PATIENT_POOL = [
     <script>
         const AudioSys = (() => {
             let audioCtx = null;
