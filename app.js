@@ -150,26 +150,25 @@ const getTeachingTip = (patient) => {
 
 // --- COMPONENTES ---
 
-const Bed = ({ type, patient, onClear, id }) => {
+const Bed = ({ type, patient, onClear, id, active = true }) => {
     const [progress, setProgress] = useState(0);
 
+    // Reiniciar la barra solo cuando cambia el paciente (no al pausar/reanudar)
     useEffect(() => {
-        let interval;
-        if (patient) {
-            setProgress(0);
-            interval = setInterval(() => {
-                setProgress(p => {
-                    if (p >= 100) {
-                        clearInterval(interval);
-                        return 100;
-                    }
-                    const speed = type === 'UCE' ? 2 : 5;
-                    return p + speed;
-                });
-            }, 500);
-        }
-        return () => clearInterval(interval);
+        setProgress(0);
     }, [patient]);
+
+    useEffect(() => {
+        if (!patient || !active) return;
+        const interval = setInterval(() => {
+            setProgress(p => {
+                if (p >= 100) return 100;
+                const speed = type === 'UCE' ? 2 : 5;
+                return Math.min(100, p + speed);
+            });
+        }, 500);
+        return () => clearInterval(interval);
+    }, [patient, active, type]);
 
     const isDone = progress >= 100;
     const barColor = type === 'UCE' ? 'bg-red-500' : 'bg-amber-400';
@@ -334,8 +333,6 @@ const MainMenu = ({ onStart }) => {
 
     return (
         <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center z-50 p-4 game-background">
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 filter contrast-150"></div>
-
             <div className="relative z-10 flex flex-col items-center">
                 <div className="text-8xl mb-6 filter drop-shadow-[0_0_25px_rgba(20,184,166,0.5)] animate-bounce">🚨</div>
                 <h1 className="text-5xl md:text-8xl font-black text-white hud-font tracking-widest mb-4 text-center">
@@ -416,38 +413,45 @@ const PauseMenu = ({ onResume, onRestart }) => (
     </div>
 );
 
-const GameOver = ({ score, reason, onRetry }) => (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div className="bg-slate-800 p-8 rounded-2xl border-4 border-red-500 text-center max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.5)] pop-in">
-            <div className="text-6xl mb-4">🚨</div>
-            <h2 className="text-3xl font-bold text-white mb-2 hud-font">GUARDIA TERMINADA</h2>
-            <p className="text-red-400 mb-6 font-mono text-lg">{reason}</p>
-            {/* Highscore alert */}
-            <div className="bg-slate-900 p-6 rounded-lg mb-4 border border-slate-700 relative overflow-hidden">
-                {saveHighScore(score) && (
-                    <div className="absolute top-0 right-0 bg-amber-500 text-slate-900 text-[10px] font-bold px-2 py-1 rotate-12 translate-x-3 -translate-y-1 shadow-lg">NUEVO RÉCORD</div>
-                )}
-                <div className="text-sm text-slate-400 uppercase tracking-widest mb-1">Puntaje Final</div>
-                <div className="text-5xl font-black text-teal-400 tracking-tighter">$ {score}</div>
-            </div>
+const GameOver = ({ score, reason, onRetry }) => {
+    // Guardar el récord una sola vez al montar (no como efecto secundario del render)
+    const [isNewRecord] = useState(() => saveHighScore(score));
+    const trophyById = (id) => Object.values(TrophySys.getAll()).find(t => t.id === id);
+    const unlocked = TrophySys.getUnlocked();
 
-            <div className="flex gap-2 mb-6 justify-center">
-                {TrophySys.getUnlocked().map(id => (
-                    <div key={id} className="text-2xl" title={TrophySys.getAll()[id.toUpperCase()]?.name}>
-                        {TrophySys.getAll()[id.toUpperCase()]?.icon || '🏆'}
-                    </div>
-                ))}
-                {TrophySys.getUnlocked().length === 0 && <div className="text-xs text-slate-500 italic">Sin trofeos nuevos esta guardia...</div>}
+    return (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-slate-800 p-8 rounded-2xl border-4 border-red-500 text-center max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.5)] pop-in">
+                <div className="text-6xl mb-4">🚨</div>
+                <h2 className="text-3xl font-bold text-white mb-2 hud-font">GUARDIA TERMINADA</h2>
+                <p className="text-red-400 mb-6 font-mono text-lg">{reason}</p>
+                {/* Highscore alert */}
+                <div className="bg-slate-900 p-6 rounded-lg mb-4 border border-slate-700 relative overflow-hidden">
+                    {isNewRecord && (
+                        <div className="absolute top-0 right-0 bg-amber-500 text-slate-900 text-[10px] font-bold px-2 py-1 rotate-12 translate-x-3 -translate-y-1 shadow-lg">NUEVO RÉCORD</div>
+                    )}
+                    <div className="text-sm text-slate-400 uppercase tracking-widest mb-1">Puntaje Final</div>
+                    <div className="text-5xl font-black text-teal-400 tracking-tighter">$ {score}</div>
+                </div>
+
+                <div className="flex gap-2 mb-6 justify-center">
+                    {unlocked.map(id => (
+                        <div key={id} className="text-2xl" title={trophyById(id)?.name}>
+                            {trophyById(id)?.icon || '🏆'}
+                        </div>
+                    ))}
+                    {unlocked.length === 0 && <div className="text-xs text-slate-500 italic">Aún sin trofeos desbloqueados...</div>}
+                </div>
+                <button onClick={() => { AudioSys.playClick(); onRetry(); }} className="w-full bg-white text-slate-900 font-bold py-4 px-6 rounded-xl hover:bg-slate-200 transition-transform hover:scale-105">
+                    NUEVA GUARDIA
+                </button>
             </div>
-            <button onClick={() => { AudioSys.playClick(); onRetry(); }} className="w-full bg-white text-slate-900 font-bold py-4 px-6 rounded-xl hover:bg-slate-200 transition-transform hover:scale-105">
-                NUEVA GUARDIA
-            </button>
         </div>
-    </div>
-);
+    );
+};
 
 const GameHeader = ({ timeLeft, score, streak, pressure }) => (
-    <div className="flex justify-between items-center mb-2 glass p-2 rounded-xl z-10 gap-2">
+    <div className="flex justify-between items-center mb-2 glass p-2 pr-20 sm:pr-24 rounded-xl z-10 gap-2">
         <div className="flex items-center gap-2">
             <div className="bg-teal-500/10 p-2 rounded-lg border border-teal-500/20 text-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.3)]">
                 <div className="w-5 h-5"><Icons.Siren /></div>
@@ -473,6 +477,14 @@ const GameHeader = ({ timeLeft, score, streak, pressure }) => (
                 <span className="text-base font-bold">{score}</span>
             </div>
 
+            {/* Streak */}
+            {streak > 1 && (
+                <div className="hidden sm:flex items-center gap-1 bg-orange-500/10 px-3 py-2 rounded-lg border border-orange-500/40 text-orange-400">
+                    <span className="text-base">🔥</span>
+                    <span className="text-base font-bold">x{streak}</span>
+                </div>
+            )}
+
             {/* Scale hidden on small */}
             <div className="hidden sm:flex flex-col justify-center gap-1 px-2 min-w-[80px]">
                 <div className="flex justify-between text-[8px] text-slate-600">
@@ -487,7 +499,7 @@ const GameHeader = ({ timeLeft, score, streak, pressure }) => (
     </div>
 );
 
-const BedsColumn = ({ title, accent, beds, maxBeds, type, onClear, columns }) => (
+const BedsColumn = ({ title, accent, beds, maxBeds, type, onClear, columns, active }) => (
     <div className={`glass p-4 rounded-2xl flex-1 flex flex-col relative overflow-hidden group`}>
         <div className={`absolute top-0 left-0 w-full h-1 ${accent.bar} opacity-50`}></div>
         <div className="font-bold mb-4 flex justify-between items-center text-xs tracking-widest pl-1">
@@ -498,7 +510,7 @@ const BedsColumn = ({ title, accent, beds, maxBeds, type, onClear, columns }) =>
             <span className="bg-slate-900/50 px-2 py-1 rounded text-slate-400 font-mono border border-white/5">{beds.filter(b => b).length}/{maxBeds}</span>
         </div>
         <div className={`grid ${columns} gap-3 overflow-y-auto pr-1 custom-scrollbar`}>
-            {beds.map((p, i) => <Bed key={i} id={i} type={type} patient={p} onClear={onClear} />)}
+            {beds.map((p, i) => <Bed key={i} id={i} type={type} patient={p} onClear={onClear} active={active} />)}
         </div>
     </div>
 );
@@ -516,10 +528,8 @@ const Supervisor = ({ feedback }) => {
     return (
         <div key={feedback.id} className={`absolute top-1/4 right-4 md:right-1/4 z-50 flex items-start gap-4 max-w-sm pop-in pointer-events-none`}>
             {/* Avatar */}
-            <div className={`w-16 h-16 rounded-full bg-slate-800 border-2 ${border} flex items-center justify-center overflow-hidden shadow-2xl relative`}>
-                <div className={`absolute inset-0 opacity-20 bg-cover bg-center`} style={{ backgroundImage: "url('https://api.dicebear.com/7.x/avataaars/svg?seed=DrBleuler&clothing=blazerAndShirt&eyebrows=default&eyes=default&mouth=default&skinColor=light')" }}></div>
+            <div className={`w-16 h-16 rounded-full bg-slate-800 border-2 ${border} flex items-center justify-center overflow-hidden shadow-2xl relative flex-shrink-0`}>
                 <div className={`${color} transform scale-125`}>
-                    {/* Placeholder icon if image fails */}
                     <Icons.Supervisor />
                 </div>
             </div>
@@ -660,7 +670,7 @@ const QueueColumn = ({ queue, caseLog, pressure }) => (
             <div className="mt-3">
                 <div className="flex justify-between text-[10px] text-slate-500 uppercase tracking-widest">
                     <span>Presión asistencial</span>
-                    <span className={`${pressure > 70 ? 'text-red-400' : pressure > 40 ? 'bg-yellow-400' : 'text-emerald-400'}`}>{pressure}%</span>
+                    <span className={`${pressure > 70 ? 'text-red-400' : pressure > 40 ? 'text-yellow-400' : 'text-emerald-400'}`}>{pressure}%</span>
                 </div>
                 <div className="mt-2 w-full h-2 bg-slate-700 rounded-full overflow-hidden">
                     <div className={`${pressure > 70 ? 'bg-red-500' : pressure > 40 ? 'bg-yellow-500' : 'bg-emerald-500'} h-full transition-all`} style={{ width: `${pressure}%` }}></div>
@@ -706,7 +716,6 @@ const QueueColumn = ({ queue, caseLog, pressure }) => (
 );
 
 // --- MOTOR DEL JUEGO ---
-// --- MOTOR DEL JUEGO ---
 const Game = () => {
     const [gameState, setGameState] = useState('MENU'); // MENU, PLAYING, PAUSED, GAMEOVER
     const [score, setScore] = useState(0);
@@ -720,10 +729,11 @@ const Game = () => {
     const [spawnRate, setSpawnRate] = useState(3500); // ms
     const [streak, setStreak] = useState(0);
     const [caseLog, setCaseLog] = useState([]);
+    const [isMuted, setIsMuted] = useState(false);
 
     const deckRef = useRef(createDeck());
     const lastPatientIdRef = useRef([]); // Stores array of recent IDs
-    const lastTriagesRef = useRef([]);
+    const pressureRef = useRef(0); // Valor vivo para leerlo dentro del timer
 
     // Limpiar feedback automáticamente
     useEffect(() => {
@@ -733,7 +743,6 @@ const Game = () => {
         }
     }, [feedback]);
 
-    // Inicializar y Timer Global
     // Inicializar y Timer Global
     useEffect(() => {
         if (gameState !== 'PLAYING') return;
@@ -754,7 +763,7 @@ const Game = () => {
                 if (elapsed > 120) setSpawnRate(1800); // Slightly faster in late game
 
                 // Trophy check: Coffee Infinite
-                if (t === 1 && pressure > 90) {
+                if (t === 1 && pressureRef.current > 90) {
                     const unlocked = TrophySys.unlock('coffee');
                     if (unlocked) setFeedback({ type: 'trophy', msg: `¡Impresionante resistencia! Has ganado: ${unlocked.name}`, id: Date.now() });
                 }
@@ -782,7 +791,6 @@ const Game = () => {
         return () => clearInterval(spawner);
     }, [spawnRate, queue.length, gameState]);
 
-    // Procesar cola
     // Procesar cola
     useEffect(() => {
         if (gameState !== 'PLAYING') return;
@@ -961,14 +969,10 @@ const Game = () => {
         // Feedback visual sutil
         const floating = document.createElement('div');
         floating.innerText = "+50";
-        floating.style.position = 'absolute';
-        floating.style.left = '50%';
-        floating.style.top = '50%';
-        floating.style.color = '#4ade80';
-        floating.style.fontWeight = 'bold';
+        floating.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:#4ade80;font-weight:bold;font-size:1.5rem;z-index:60;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,0.6);';
         floating.className = 'animate-bounce';
         document.body.appendChild(floating);
-        setTimeout(() => document.body.removeChild(floating), 1000);
+        setTimeout(() => floating.remove(), 1000);
     };
 
     const shakeScreen = () => {
@@ -994,9 +998,10 @@ const Game = () => {
         setGameState('PLAYING');
     };
 
-    if (gameState === 'MENU') return <MainMenu onStart={startGame} />;
-
     const pressure = Math.min(100, Math.round((queue.length / 8) * 100));
+    pressureRef.current = pressure;
+
+    if (gameState === 'MENU') return <MainMenu onStart={startGame} />;
 
     return (
         <div className="h-screen w-full bg-slate-900 p-2 overflow-hidden relative font-sans game-background grid grid-rows-[auto_1fr] gap-2">
@@ -1007,17 +1012,26 @@ const Game = () => {
             {/* HEADER */}
             <div className="relative z-20">
                 <GameHeader timeLeft={timeLeft} score={score} streak={streak} pressure={pressure} />
-                <button
-                    onClick={() => { AudioSys.playClick(); setGameState('PAUSED'); }}
-                    className="absolute top-2 right-4 sm:top-3 sm:right-6 bg-slate-700/80 hover:bg-slate-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition-colors border border-slate-600 z-20"
-                    title="Pausar"
-                >
-                    ⏸
-                </button>
+                <div className="absolute top-2 right-4 sm:top-3 sm:right-6 flex gap-1.5 z-20">
+                    <button
+                        onClick={() => setIsMuted(AudioSys.toggleMute())}
+                        className="bg-slate-700/80 hover:bg-slate-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition-colors border border-slate-600"
+                        title={isMuted ? "Activar sonido" : "Silenciar"}
+                    >
+                        {isMuted ? '🔇' : '🔊'}
+                    </button>
+                    <button
+                        onClick={() => { AudioSys.playClick(); setGameState('PAUSED'); }}
+                        className="bg-slate-700/80 hover:bg-slate-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition-colors border border-slate-600"
+                        title="Pausar"
+                    >
+                        ⏸
+                    </button>
+                </div>
             </div>
 
-            {/* GAME AREA - GRID LAYOUT 12 COLS */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 overflow-hidden min-h-0 relative">
+            {/* GAME AREA - GRID LAYOUT 12 COLS (scroll vertical en pantallas pequeñas) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 overflow-y-auto lg:overflow-hidden custom-scrollbar min-h-0 relative">
 
                 {/* LEFT: BEDS (3/12 = 25%) */}
                 <div className="flex flex-col gap-2 overflow-hidden lg:col-span-3">
@@ -1035,6 +1049,7 @@ const Game = () => {
                         type="UCE"
                         onClear={clearBed}
                         columns="grid-cols-1"
+                        active={gameState === 'PLAYING'}
                     />
                     <BedsColumn
                         title="OBS"
@@ -1050,6 +1065,7 @@ const Game = () => {
                         type="OBS"
                         onClear={clearBed}
                         columns="grid-cols-2"
+                        active={gameState === 'PLAYING'}
                     />
                 </div>
 
