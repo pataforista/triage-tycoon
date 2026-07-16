@@ -126,8 +126,8 @@ const extractClinicalClues = (patient) => {
 
     if (vitals.includes("glasgow") || vitals.includes("somnol")) clues.push("Compromiso del estado de conciencia.");
     if (vitals.includes("sato2") || vitals.includes("bradipnea") || vitals.includes("hipox")) clues.push("Posible compromiso respiratorio.");
-    if (vitals.includes("temp") || vitals.includes("fiebre") || vitals.includes("38") || vitals.includes("39")) clues.push("Fiebre/posible causa médica.");
-    if (vitals.includes("hipotens") || vitals.includes("90/") || vitals.includes("85/")) clues.push("Inestabilidad hemodinámica.");
+    if (vitals.match(/3[89][.,]?\d*\s*°?c/i) || vitals.includes("temp") || vitals.includes("fiebre")) clues.push("Fiebre/posible causa médica.");
+    if (vitals.match(/(?:85|90)\/\d{2,3}/) || vitals.includes("hipotens")) clues.push("Inestabilidad hemodinámica.");
     if (vitals.includes("hipogluc")) clues.push("Hipoglucemia: corregir urgente.");
     if (complaint.includes("suicid") || complaint.includes("infantic")) clues.push("Riesgo autolesivo/heteroagresivo.");
     if (complaint.includes("dolor pecho") || vitals.includes("dolor pecho")) clues.push("Dolor torácico: descartar causa orgánica.");
@@ -215,8 +215,8 @@ const PatientCard = ({ patient }) => {
                 <div className="flex justify-between items-start mb-3 relative z-10">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[9px] font-black tracking-widest text-teal-400 uppercase border border-teal-500/30 px-2 py-0.5 rounded-full bg-teal-500/10">Paciente</span>
-                            <span className="text-[9px] font-mono text-slate-500">ID: {patient.id.toString().padStart(4, '0')}</span>
+                            <span className="text-[10px] font-black tracking-widest text-teal-400 uppercase border border-teal-500/30 px-2 py-0.5 rounded-full bg-teal-500/10">Paciente</span>
+                            <span className="text-[10px] font-mono text-slate-500">ID: {patient.id.toString().padStart(4, '0')}</span>
                         </div>
                         <h2 className="text-2xl font-bold text-white tracking-tight">{patient.name}</h2>
                         <span className="text-xs text-slate-400 font-medium">{patient.age} años</span>
@@ -226,7 +226,7 @@ const PatientCard = ({ patient }) => {
 
                 <div className="space-y-3 mb-3 relative z-10">
                     <div className="bg-red-500/10 p-3 rounded-xl border border-red-500/20">
-                        <div className="text-[9px] text-red-400 font-bold uppercase mb-1 tracking-wider flex items-center gap-2">
+                        <div className="text-[10px] text-red-400 font-bold uppercase mb-1 tracking-wider flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div> Motivo de Consulta
                         </div>
                         <p className="text-sm font-medium leading-normal text-red-100/90">"{patient.complaint}"</p>
@@ -237,7 +237,7 @@ const PatientCard = ({ patient }) => {
                     </div>
                 </div>
 
-                <div className="text-[9px] text-center text-slate-500 uppercase tracking-[0.2em] font-bold animate-pulse">
+                <div className="text-[10px] text-center text-slate-500 uppercase tracking-[0.2em] font-bold animate-pulse">
                     Esperando Diagnóstico
                 </div>
             </div>
@@ -463,7 +463,7 @@ const GameHeader = ({ timeLeft, score, streak, pressure }) => (
                 <h1 className="text-lg font-black text-white hud-font tracking-widest uppercase flex items-center gap-2">
                     Triage Tycoon
                 </h1>
-                <div className="text-[8px] text-teal-500/80 font-mono tracking-widest uppercase">Guardia Nocturna</div>
+                <div className="text-[10px] text-teal-500/80 font-mono tracking-widest uppercase">Guardia Nocturna</div>
             </div>
         </div>
 
@@ -490,7 +490,7 @@ const GameHeader = ({ timeLeft, score, streak, pressure }) => (
 
             {/* Scale hidden on small */}
             <div className="hidden sm:flex flex-col justify-center gap-1 px-2 min-w-[80px]">
-                <div className="flex justify-between text-[8px] text-slate-600">
+                <div className="flex justify-between text-[10px] text-slate-600">
                     <span>Presión</span>
                     <span className={`${pressure > 70 ? 'text-red-400' : 'text-emerald-400'}`}>{pressure}%</span>
                 </div>
@@ -568,8 +568,8 @@ const ControlPanel = ({ onDecision, disabled }) => {
             >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                 <div className="p-1.5 bg-red-800/80 rounded-full mb-1 shadow-lg shadow-red-900/50 group-hover:scale-110 transition-transform"><Icons.Siren /></div>
-                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest relative z-10">Hospitalizar</span>
-                <span className="text-[8px] opacity-60 font-mono relative z-10">UCE</span>
+                <span className="text-[10px] sm:text-[10px] font-black uppercase tracking-widest relative z-10">Hospitalizar</span>
+                <span className="text-[10px] opacity-60 font-mono relative z-10">UCE</span>
             </button>
 
             <button
@@ -580,8 +580,8 @@ const ControlPanel = ({ onDecision, disabled }) => {
             >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                 <div className="p-1.5 bg-amber-700/80 rounded-full mb-1 shadow-lg shadow-amber-900/50 group-hover:scale-110 transition-transform"><Icons.Bed /></div>
-                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest relative z-10">Observación</span>
-                <span className="text-[8px] opacity-60 font-mono relative z-10">OBS</span>
+                <span className="text-[10px] sm:text-[10px] font-black uppercase tracking-widest relative z-10">Observación</span>
+                <span className="text-[10px] opacity-60 font-mono relative z-10">OBS</span>
             </button>
 
             <button
@@ -592,8 +592,8 @@ const ControlPanel = ({ onDecision, disabled }) => {
             >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                 <div className="p-1.5 bg-emerald-700/80 rounded-full mb-1 shadow-lg shadow-emerald-900/50 group-hover:scale-110 transition-transform"><Icons.Home /></div>
-                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest relative z-10">Alta Médica</span>
-                <span className="text-[8px] opacity-60 font-mono relative z-10">CASA</span>
+                <span className="text-[10px] sm:text-[10px] font-black uppercase tracking-widest relative z-10">Alta Médica</span>
+                <span className="text-[10px] opacity-60 font-mono relative z-10">CASA</span>
             </button>
         </div>
     );
@@ -652,8 +652,8 @@ const CaseLog = ({ entries }) => (
                             </div>
                             <div className="text-[10px] text-slate-400 pl-2 mb-2">{entry.diagnosis}</div>
                             <div className="flex gap-2 pl-2">
-                                <span className="px-2 py-0.5 bg-slate-900 rounded text-[9px] text-slate-500">REAL: <span className="text-slate-300">{entry.correctTriage}</span></span>
-                                <span className="px-2 py-0.5 bg-slate-900 rounded text-[9px] text-slate-500">TÚ: <span className={`font-bold ${entry.correct ? 'text-emerald-400' : 'text-red-400'}`}>{entry.decision}</span></span>
+                                <span className="px-2 py-0.5 bg-slate-900 rounded text-[10px] text-slate-500">REAL: <span className="text-slate-300">{entry.correctTriage}</span></span>
+                                <span className="px-2 py-0.5 bg-slate-900 rounded text-[10px] text-slate-500">TÚ: <span className={`font-bold ${entry.correct ? 'text-emerald-400' : 'text-red-400'}`}>{entry.decision}</span></span>
                             </div>
                         </div>
                     ))}
@@ -689,13 +689,13 @@ const QueueColumn = ({ queue, caseLog, pressure }) => (
                         <span className="text-lg opacity-70 flex-shrink-0">{p.sprite}</span>
                         <div className="min-w-0 flex-1">
                             <div className="font-bold text-xs text-white truncate">{p.name}</div>
-                            <div className="text-[9px] text-slate-400 truncate">{p.complaint}</div>
+                            <div className="text-[10px] text-slate-400 truncate">{p.complaint}</div>
                             <div className="w-full h-1 bg-slate-800 mt-1 rounded-full overflow-hidden">
                                 <div className={`h-full transition-all ${(p.waitTime || 0) > 30 ? 'bg-red-500' : 'bg-amber-500'}`} style={{ width: `${Math.min(100, ((p.waitTime || 0) / 45) * 100)}%` }}></div>
                             </div>
                         </div>
                     </div>
-                    <div className="text-[9px] font-mono text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded flex-shrink-0">#{i + 1}</div>
+                    <div className="text-[10px] font-mono text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded flex-shrink-0">#{i + 1}</div>
                 </div>
             ))}
             {queue.length === 0 && (
@@ -706,7 +706,7 @@ const QueueColumn = ({ queue, caseLog, pressure }) => (
         {/* Bottom: Info & Logs (Flexible 60%) */}
         <div className="flex-[0.6] bg-slate-900 flex flex-col overflow-hidden min-h-0">
             <div className="p-3 flex-shrink-0">
-                <div className="p-2 bg-blue-900/20 rounded border border-blue-500/20 text-[9px] text-blue-300 leading-snug flex gap-2">
+                <div className="p-2 bg-blue-900/20 rounded border border-blue-500/20 text-[10px] text-blue-300 leading-snug flex gap-2">
                     <span className="text-base">ℹ️</span>
                     <div>
                         <strong>TIP:</strong> Revisa GLUCOSA y T°. Algunos "psiquiátricos" son orgánicos (hipoglucemia, etc) → UCE.
