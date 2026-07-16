@@ -1,5 +1,5 @@
 // --- BASE DE DATOS DE PACIENTES (EXPANDIDA) ---
-const PATIENT_POOL = [
+export const PATIENT_POOL = [
     {
         id: 1,
         name: "Sofía",

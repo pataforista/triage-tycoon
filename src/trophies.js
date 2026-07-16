@@ -1,11 +1,11 @@
-const TROPHIES = {
+export const TROPHIES = {
     DSM5: { id: 'dsm5', name: 'DSM-5 de Oro', icon: '📘', desc: 'Identificar 10 casos psiquiátricos seguidos sin error.' },
     STETHOSCOPE: { id: 'steth', name: 'Estetoscopio Pro', icon: '🩺', desc: 'Detectar un caso orgánico (UCE) disfrazado de psiquiátrico.' },
     ECT: { id: 'ect', name: 'Máquina TEC', icon: '⚡', desc: 'Alcanzar una racha supersónica de 20.' },
     COFFEE: { id: 'coffee', name: 'Café Infinito', icon: '☕', desc: 'Sobrevivir un turno completo con >90% de presión.' }
 };
 
-const TrophySys = (() => {
+export const TrophySys = (() => {
     const getUnlocked = () => JSON.parse(localStorage.getItem('triage_trophies') || '[]');
 
     const unlock = (trophyId) => {

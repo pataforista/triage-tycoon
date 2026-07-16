@@ -1,4 +1,7 @@
-const { useState, useEffect, useRef } = React;
+import React, { useState, useEffect, useRef } from 'react';
+import { PATIENT_POOL } from './patients.js';
+import { AudioSys } from './audio.js';
+import { TrophySys, TROPHIES } from './trophies.js';
 
 // --- CONFIGURACIÓN ---
 const GAME_DURATION = 180; // 3 Minutos
@@ -413,11 +416,11 @@ const PauseMenu = ({ onResume, onRestart }) => (
     </div>
 );
 
-const GameOver = ({ score, reason, onRetry }) => {
+const GameOver = ({ score, reason, onRetry, sessionTrophies = [] }) => {
     // Guardar el récord una sola vez al montar (no como efecto secundario del render)
     const [isNewRecord] = useState(() => saveHighScore(score));
     const trophyById = (id) => Object.values(TrophySys.getAll()).find(t => t.id === id);
-    const unlocked = TrophySys.getUnlocked();
+    const unlocked = sessionTrophies;
 
     return (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
@@ -684,9 +687,12 @@ const QueueColumn = ({ queue, caseLog, pressure }) => (
                 <div key={p.uniqueId} className="bg-slate-700/50 p-2 rounded-lg flex justify-between items-center border border-slate-600 hover:bg-slate-700 transition-colors">
                     <div className="flex items-center gap-2 overflow-hidden">
                         <span className="text-lg opacity-70 flex-shrink-0">{p.sprite}</span>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                             <div className="font-bold text-xs text-white truncate">{p.name}</div>
                             <div className="text-[9px] text-slate-400 truncate">{p.complaint}</div>
+                            <div className="w-full h-1 bg-slate-800 mt-1 rounded-full overflow-hidden">
+                                <div className={`h-full transition-all ${(p.waitTime || 0) > 30 ? 'bg-red-500' : 'bg-amber-500'}`} style={{ width: `${Math.min(100, ((p.waitTime || 0) / 45) * 100)}%` }}></div>
+                            </div>
                         </div>
                     </div>
                     <div className="text-[9px] font-mono text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded flex-shrink-0">#{i + 1}</div>
@@ -730,6 +736,8 @@ const Game = () => {
     const [streak, setStreak] = useState(0);
     const [caseLog, setCaseLog] = useState([]);
     const [isMuted, setIsMuted] = useState(false);
+    const [pressurePenalty, setPressurePenalty] = useState(0);
+    const [sessionTrophies, setSessionTrophies] = useState([]);
 
     const deckRef = useRef(createDeck());
     const lastPatientIdRef = useRef([]); // Stores array of recent IDs
@@ -762,10 +770,12 @@ const Game = () => {
                 const elapsed = GAME_DURATION - t;
                 if (elapsed > 120) setSpawnRate(1800); // Slightly faster in late game
 
-                // Trophy check: Coffee Infinite
                 if (t === 1 && pressureRef.current > 90) {
                     const unlocked = TrophySys.unlock('coffee');
-                    if (unlocked) setFeedback({ type: 'trophy', msg: `¡Impresionante resistencia! Has ganado: ${unlocked.name}`, id: Date.now() });
+                    if (unlocked) {
+                        setFeedback({ type: 'trophy', msg: `¡Impresionante resistencia! Has ganado: ${unlocked.name}`, id: Date.now() });
+                        setSessionTrophies(prev => [...prev, 'coffee']);
+                    }
                 }
 
                 // Tick sound last 10 secs
@@ -790,6 +800,36 @@ const Game = () => {
         }, spawnRate);
         return () => clearInterval(spawner);
     }, [spawnRate, queue.length, gameState]);
+
+    // Deterioro de pacientes
+    useEffect(() => {
+        if (gameState !== 'PLAYING') return;
+
+        const queueTimer = setInterval(() => {
+            setQueue(prev => {
+                let deteriorated = false;
+                const nextQueue = prev.map(p => {
+                    const waitTime = (p.waitTime || 0) + 1;
+                    if (waitTime === 45) {
+                        deteriorated = true;
+                    }
+                    return { ...p, waitTime };
+                });
+                
+                if (deteriorated) {
+                    setPressurePenalty(p => p + 15);
+                    setFeedback({ 
+                        type: 'error', 
+                        msg: '¡Un paciente ha empeorado por la espera! Aumenta la presión.', 
+                        id: Date.now() 
+                    });
+                    AudioSys.playError();
+                }
+                return nextQueue;
+            });
+        }, 1000);
+        return () => clearInterval(queueTimer);
+    }, [gameState]);
 
     // Procesar cola
     useEffect(() => {
@@ -906,15 +946,24 @@ const Game = () => {
             // Trophy Checks
             if (nextStreak === 20) {
                 const unlocked = TrophySys.unlock('ect');
-                if (unlocked) setTimeout(() => setFeedback({ type: 'trophy', msg: `¡Increíble racha! Te has ganado la ${unlocked.name}.`, id: Date.now() + 1000 }), 1500);
+                if (unlocked) {
+                    setTimeout(() => setFeedback({ type: 'trophy', msg: `¡Increíble racha! Te has ganado la ${unlocked.name}.`, id: Date.now() + 1000 }), 1500);
+                    setSessionTrophies(prev => [...prev, 'ect']);
+                }
             }
             if (nextStreak === 10) {
                 const unlocked = TrophySys.unlock('dsm5');
-                if (unlocked) setTimeout(() => setFeedback({ type: 'trophy', msg: `¡Estás en racha! Toma este ${unlocked.name}.`, id: Date.now() + 1000 }), 1500);
+                if (unlocked) {
+                    setTimeout(() => setFeedback({ type: 'trophy', msg: `¡Estás en racha! Toma este ${unlocked.name}.`, id: Date.now() + 1000 }), 1500);
+                    setSessionTrophies(prev => [...prev, 'dsm5']);
+                }
             }
             if (type === 'UCE' && (currentPatient.diagnosis.includes("Delirium") || currentPatient.diagnosis.includes("Sepsis") || currentPatient.diagnosis.includes("Tiroidea") || currentPatient.diagnosis.includes("Hipoglucemia"))) {
                 const unlocked = TrophySys.unlock('steth');
-                if (unlocked) setTimeout(() => setFeedback({ type: 'trophy', msg: `¡Excelente diagnóstico diferencial! Te mereces el ${unlocked.name}.`, id: Date.now() + 1000 }), 1500);
+                if (unlocked) {
+                    setTimeout(() => setFeedback({ type: 'trophy', msg: `¡Excelente diagnóstico diferencial! Te mereces el ${unlocked.name}.`, id: Date.now() + 1000 }), 1500);
+                    setSessionTrophies(prev => [...prev, 'steth']);
+                }
             }
         }
 
@@ -990,6 +1039,8 @@ const Game = () => {
         setGameOver(null);
         setStreak(0);
         setCaseLog([]);
+        setPressurePenalty(0);
+        setSessionTrophies([]);
 
         // Pre-fill queue slightly
         deckRef.current = createDeck();
@@ -998,7 +1049,8 @@ const Game = () => {
         setGameState('PLAYING');
     };
 
-    const pressure = Math.min(100, Math.round((queue.length / 8) * 100));
+    const basePressure = Math.min(100, Math.round((queue.length / 8) * 100));
+    const pressure = Math.min(100, basePressure + pressurePenalty);
     pressureRef.current = pressure;
 
     if (gameState === 'MENU') return <MainMenu onStart={startGame} />;
@@ -1006,7 +1058,7 @@ const Game = () => {
     return (
         <div className="h-screen w-full bg-slate-900 p-2 overflow-hidden relative font-sans game-background grid grid-rows-[auto_1fr] gap-2">
             {/* OVERLAYS */}
-            {gameState === 'GAMEOVER' && <GameOver score={score} reason={gameOver} onRetry={() => setGameState('MENU')} />}
+            {gameState === 'GAMEOVER' && <GameOver score={score} reason={gameOver} onRetry={() => setGameState('MENU')} sessionTrophies={sessionTrophies} />}
             {gameState === 'PAUSED' && <PauseMenu onResume={() => setGameState('PLAYING')} onRestart={() => setGameState('MENU')} />}
 
             {/* HEADER */}
@@ -1096,5 +1148,4 @@ const Game = () => {
     );
 };
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<Game />);
+export { Game };

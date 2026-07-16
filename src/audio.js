@@ -1,4 +1,4 @@
-const AudioSys = (() => {
+export const AudioSys = (() => {
     let audioCtx = null;
     let isMuted = false;
 
