@@ -4,7 +4,9 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
@@ -13,12 +15,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/pataforista/triage-tycoon/issues"
   },
   "homepage": "https://github.com/pataforista/triage-tycoon#readme",
   "dependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

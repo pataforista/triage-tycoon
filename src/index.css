@@ -67,15 +67,7 @@ body {
         inset 0 1px 0 var(--border-highlight);
 }
 
-.glass-panel {
-    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(15, 23, 42, 0.8) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border-default);
-    box-shadow: 
-        var(--shadow-md),
-        inset 0 1px 0 var(--border-highlight);
-}
+
 
 /* --- ANIMATIONS --- */
 @keyframes slideInRight {
